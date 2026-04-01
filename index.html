@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Dashboard Oficinas • Jovens Viana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --tw-color-primary: #3b82f6;
+        }
+        
+        * {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+        }
+        
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .table-row {
+            transition: all 0.2s ease;
+        }
+        
+        .table-row:hover {
+            background-color: #f8fafc;
+        }
+        
+        .chart-container {
+            position: relative;
+        }
+        
+        .whatsapp-btn {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal {
+            animation: modalPop 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-800">
+    <!-- HEADER -->
+    <header class="dashboard-header text-white py-6 shadow-xl">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+            <div class="flex items-center gap-x-4">
+                <div class="bg-white text-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-inner">
+                    📍
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Dashboard Oficinas</h1>
+                    <p class="text-blue-100 text-sm font-medium">Jovens de Viana • 44 inscritos • Atualizado em 01/04/2026</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-x-6">
+                <!-- Stats quick -->
+                <div id="quick-total" class="text-right">
+                    <div class="text-xs uppercase tracking-widest text-blue-100">Total de Jovens</div>
+                    <div id="quick-total-number" class="text-4xl font-bold">44</div>
+                </div>
+                
+                <div class="h-12 w-px bg-white/30"></div>
+                
+                <a href="#" onclick="exportarCSV()" 
+                   class="flex items-center gap-x-2 bg-white/20 hover:bg-white/30 px-5 py-2 rounded-2xl text-sm font-semibold transition">
+                    <i class="fa-solid fa-download"></i>
+                    Exportar CSV
+                </a>
+                
+                <div class="flex items-center gap-x-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-3xl text-sm cursor-pointer" onclick="toggleDarkMode()">
+                    <i class="fa-solid fa-moon" id="dark-icon"></i>
+                </div>
+                
+                <div class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-blue-600 font-bold text-xl shadow-inner">
+                    👦
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        
+        <!-- CARDS DE ESTATÍSTICAS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <!-- Card 1 -->
+            <div class="card bg-white rounded-3xl shadow-xl p-6 flex items-center gap-x-5">
+                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl">
+                    👥
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-500">Total de Jovens</p>
+                    <div id="total-jovens" class="text-5xl font-bold text-slate-800 mt-1">44</div>
+                    <p class="text-emerald-600 text-xs flex items-center gap-x-1 mt-3">
+                        <i class="fa-solid fa-arrow-trend-up"></i> +3 desde a última semana
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="card bg-white rounded-3xl shadow-xl p-6 flex items-center gap-x-5">
+                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl">
+                    🏘️
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-500">Bairros Diferentes</p>
+                    <div id="total-bairros" class="text-5xl font-bold text-slate-800 mt-1">9</div>
+                    <p class="text-slate-500 text-xs mt-3">Maior: Castelo Branco (18 jovens)</p>
+                </div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="card bg-white rounded-3xl shadow-xl p-6 flex items-center gap-x-5">
+                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl">
+                    🛠️
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-500">Oficinas Oferecidas</p>
+                    <div id="total-oficinas" class="text-5xl font-bold text-slate-800 mt-1">11</div>
+                    <p class="text-slate-500 text-xs mt-3">para jovens de 15 a 29</p>
+                </div>
+            </div>
+            
+            <!-- Card 4 -->
+            <div class="card bg-white rounded-3xl shadow-xl p-6 flex items-center gap-x-5">
+                <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-3xl">
+                    📋
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-500">Total de Inscrições</p>
+                    <div id="total-inscricoes" class="text-5xl font-bold text-slate-800 mt-1">138</div>
+                    <p class="text-slate-500 text-xs mt-3">Média de 3,1 oficinas por jovem</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- GRÁFICO POR BAIRRO -->
+            <div class="lg:col-span-7 bg-white rounded-3xl shadow-xl p-7">
+                <div class="flex justify-between items-baseline mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold">📍 Jovens por Bairro</h2>
+                        <p class="text-slate-500 text-sm">Distribuição geográfica dos inscritos</p>
+                    </div>
+                    <div class="text-xs px-4 py-1 bg-slate-100 rounded-3xl font-medium text-slate-600">44 jovens</div>
+                </div>
+                <div class="chart-container h-96">
+                    <canvas id="graficoBairros"></canvas>
+                </div>
+            </div>
+            
+            <!-- GRÁFICO POR OFICINA -->
+            <div class="lg:col-span-5 bg-white rounded-3xl shadow-xl p-7">
+                <div class="flex justify-between items-baseline mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold">🔥 Inscrições por Oficina</h2>
+                        <p class="text-slate-500 text-sm">Quantidade total de interesses</p>
+                    </div>
+                    <div onclick="mostrarDestaque()" class="cursor-pointer text-xs px-4 py-1 bg-rose-100 text-rose-600 rounded-3xl font-medium flex items-center gap-x-1">
+                        <i class="fa-solid fa-fire"></i> Ver mais procuradas
+                    </div>
+                </div>
+                <div class="chart-container h-96">
+                    <canvas id="graficoOficinas"></canvas>
+                </div>
+            </div>
+            
+            <!-- PERFIL DOS JOVENS -->
+            <div class="lg:col-span-12 bg-white rounded-3xl shadow-xl p-8">
+                <h2 class="text-xl font-semibold mb-6 flex items-center gap-x-3">
+                    <i class="fa-solid fa-chart-simple"></i> 
+                    Perfil Geral dos Jovens
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div>
+                        <p class="uppercase text-xs tracking-widest text-slate-400 mb-2">Idade Média</p>
+                        <div id="idade-media" class="text-6xl font-bold text-blue-600">16,02</div>
+                        <p class="text-slate-500 text-sm">anos (considerando datas conhecidas)</p>
+                    </div>
+                    <div>
+                        <p class="uppercase text-xs tracking-widest text-slate-400 mb-2">Faixa Etária Dominante</p>
+                        <div class="flex gap-x-2 flex-wrap">
+                            <div class="bg-blue-100 text-blue-700 text-sm px-5 py-2 rounded-3xl font-medium">14–15 anos <span class="font-bold">(29 jovens)</span></div>
+                            <div class="bg-amber-100 text-amber-700 text-sm px-5 py-2 rounded-3xl font-medium">16–17 anos <span class="font-bold">(13 jovens)</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="uppercase text-xs tracking-widest text-slate-400 mb-2">Oficinas Mais Procuradas</p>
+                        <ol id="top-oficinas" class="space-y-3 text-sm">
+                            <!-- JS populated -->
+                        </ol>
+                    </div>
+                    <div>
+                        <p class="uppercase text-xs tracking-widest text-slate-400 mb-2">Bairro com Maior Concentração</p>
+                        <div class="flex items-center gap-x-4">
+                            <div class="text-6xl font-bold text-emerald-600" id="bairro-dominante">Castelo Branco</div>
+                            <div class="text-sm text-slate-500">18 jovens<br><span class="text-emerald-500 font-medium">41% do total</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FILTROS E TABELA -->
+            <div class="lg:col-span-12">
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+                    <!-- Filtros -->
+                    <div class="px-8 pt-6 pb-4 border-b flex flex-wrap gap-4 items-end">
+                        <div class="flex-1 min-w-[240px]">
+                            <label class="text-xs font-medium text-slate-400 block mb-2">🔎 Buscar por nome</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                                <input 
+                                    id="busca-nome"
+                                    onkeyup="filtrarTabela()"
+                                    type="text" 
+                                    placeholder="Digite o nome do jovem..."
+                                    class="w-full bg-slate-100 border border-transparent focus:border-blue-300 rounded-3xl px-11 py-3 text-sm outline-none">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 block mb-2">🏘️ Filtrar por Bairro</label>
+                            <select id="filtro-bairro" onchange="filtrarTabela()" 
+                                    class="bg-slate-100 border border-transparent focus:border-blue-300 rounded-3xl px-6 py-3 text-sm outline-none">
+                                <option value="">Todos os bairros</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs font-medium text-slate-400 block mb-2">🛠️ Filtrar por Oficina</label>
+                            <select id="filtro-oficina" onchange="filtrarTabela()" 
+                                    class="bg-slate-100 border border-transparent focus:border-blue-300 rounded-3xl px-6 py-3 text-sm outline-none">
+                                <option value="">Todas as oficinas</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex-1 flex justify-end gap-x-3">
+                            <button onclick="limparFiltros()" 
+                                    class="px-7 py-3 text-slate-500 hover:text-slate-700 flex items-center gap-x-2 text-sm font-medium">
+                                <i class="fa-solid fa-rotate-right"></i> Limpar filtros
+                            </button>
+                            <button onclick="exportarCSV()" 
+                                    class="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl flex items-center gap-x-2 text-sm font-semibold">
+                                <i class="fa-solid fa-file-export"></i> Baixar lista completa
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- TABELA -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b">
+                                    <th onclick="ordenarTabela(0)" class="text-left py-5 px-8 font-semibold cursor-pointer">NOME <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                                    <th onclick="ordenarTabela(1)" class="text-left py-5 px-4 font-semibold cursor-pointer">IDADE <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                                    <th onclick="ordenarTabela(2)" class="text-left py-5 px-4 font-semibold cursor-pointer">BAIRRO <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                                    <th class="text-left py-5 px-4 font-semibold">TELEFONE</th>
+                                    <th class="text-left py-5 px-6 font-semibold">OFICINAS</th>
+                                    <th class="w-40 text-center py-5 px-8 font-semibold">AÇÃO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-corpo" class="divide-y">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FOOTER -->
+    <footer class="bg-white border-t py-6 text-center text-xs text-slate-400">
+        Dashboard interativo criado para gestão das oficinas • Dados extraídos do PDF LISTA DE INTERESSE DE OFICINAS • 
+        Total de 44 jovens • <span class="text-blue-500 cursor-pointer hover:underline" onclick="window.location.reload()">Atualizar página</span>
+    </footer>
+
+    <script>
+        // ====================== DADOS EXTRAÍDOS DO PDF ======================
+        const jovens = [
+            {id:1,nome:"Ariel",nascimento:"28/01/2011",bairro:"Padre Gabriel",telefone:"27997625127",oficinas:["Capoeira","Jiu-Jitsu","Vôlei"]},
+            {id:2,nome:"Samyla",nascimento:"15/01/2010",bairro:"Bela Vista",telefone:"27995042833",oficinas:["Manutenção de Computadores"]},
+            {id:3,nome:"Karoliny",nascimento:"13/05/2008",bairro:"Bela Vista",telefone:"27997804472",oficinas:["Trança"]},
+            {id:4,nome:"Brayan",nascimento:"23/05/2010",bairro:"Padre Gabriel",telefone:"27996047612",oficinas:["Jiu-Jitsu","Manutenção de Computadores","Barbearia","Vôlei","Futsal"]},
+            {id:5,nome:"Rayssa",nascimento:"23/06/2008",bairro:"Rio Marinho",telefone:"279961655949",oficinas:["Trança","Clube das Meninas"]},
+            {id:6,nome:"Derick",nascimento:"28/01/2010",bairro:"Padre Gabriel",telefone:"27996704846",oficinas:["Jiu-Jitsu"]},
+            {id:7,nome:"Emanuel",nascimento:"12/12/2010",bairro:"Bela Vista",telefone:"27993219872",oficinas:["Capoeira","Manutenção de Computadores","Fotografia","Vôlei"]},
+            {id:8,nome:"Ryan",nascimento:"27/08/2008",bairro:"Castelo Branco",telefone:"27992568454",oficinas:["Queimada","Vôlei"]},
+            {id:9,nome:"Samyra",nascimento:"21/03/2011",bairro:"Bela Vista",telefone:"27995028481",oficinas:["Fotografia"]},
+            {id:10,nome:"Emily",nascimento:"14/12/2011",bairro:"Bela Vista",telefone:"27997863004",oficinas:["Fotografia"]},
+            {id:11,nome:"Brenda",nascimento:"02/10/2008",bairro:"Santa Paula",telefone:"27992584273",oficinas:["Jiu-Jitsu","Trança"]},
+            {id:12,nome:"Erik",nascimento:"04/10/2008",bairro:"Padre Gabriel",telefone:"27988673001",oficinas:["Jiu-Jitsu"]},
+            {id:13,nome:"Gabriel",nascimento:"21/12/2009",bairro:"Padre Gabriel",telefone:"",oficinas:["Barbearia"]},
+            {id:14,nome:"Julia",nascimento:"18/10/????",bairro:"Santa Paula",telefone:"27998239153",oficinas:["Capoeira","Jiu-Jitsu","Fotografia","Barbearia","Vôlei"]},
+            {id:15,nome:"Géssica",nascimento:"15/03/2010",bairro:"Rio Marinho",telefone:"27998789765",oficinas:["Capoeira","Jiu-Jitsu","Barbearia","Vôlei"]},
+            {id:16,nome:"Gabriela",nascimento:"14/07/2009",bairro:"Desconhecido",telefone:"27992389389",oficinas:["Capoeira","Jiu-Jitsu","Fotografia","Barbearia","Vôlei"]},
+            {id:17,nome:"Diego",nascimento:"01/02/2010",bairro:"Padre Gabriel",telefone:"28999583917",oficinas:["Barbearia"]},
+            {id:18,nome:"Gabriel",nascimento:"27/11/2008",bairro:"Bela Vista",telefone:"27998722079",oficinas:["Fotografia"]},
+            {id:19,nome:"Ketellen",nascimento:"28/01/????",bairro:"Jardim Botânico",telefone:"27998120810",oficinas:["Jiu-Jitsu"]},
+            {id:20,nome:"Evellyn",nascimento:"26/05/2008",bairro:"Padre Gabriel",telefone:"27996373895",oficinas:["Trança","Fotografia"]},
+            {id:21,nome:"Nicolly",nascimento:"19/05/2010",bairro:"Castelo Branco",telefone:"27998460589",oficinas:["Trança"]},
+            {id:22,nome:"Yasmin",nascimento:"15/09/2009",bairro:"Castelo Branco",telefone:"28999256027",oficinas:["Trança"]},
+            {id:23,nome:"Rayane",nascimento:"05/09/2008",bairro:"Castelo Branco",telefone:"279922522401",oficinas:["Trança"]},
+            {id:24,nome:"Victor",nascimento:"08/02/2010",bairro:"Padre Gabriel",telefone:"",oficinas:["Barbearia"]},
+            {id:25,nome:"Kelvin",nascimento:"24/10/2010",bairro:"Castelo Branco",telefone:"27997466503",oficinas:["Barbearia"]},
+            {id:26,nome:"Kauã",nascimento:"01/06/2010",bairro:"Castelo Branco",telefone:"27999955938",oficinas:["Barbearia"]},
+            {id:27,nome:"João Paulo",nascimento:"29/10/2009",bairro:"Padre Gabriel",telefone:"27996032550",oficinas:["Manutenção de Computadores"]},
+            {id:28,nome:"Josias",nascimento:"29/11/2009",bairro:"Padre Gabriel",telefone:"27998450482",oficinas:["Capoeira","Jiu-Jitsu","Vôlei"]},
+            {id:29,nome:"Pedro Henrique",nascimento:"19/05/2008",bairro:"Castelo Branco",telefone:"27997323588",oficinas:["Futsal"]},
+            {id:30,nome:"Vitor",nascimento:"02/06/2010",bairro:"Castelo Branco",telefone:"27998662799",oficinas:["Jiu-Jitsu"]},
+            {id:31,nome:"Isabelly",nascimento:"08/04/2009",bairro:"Jardim Campo Grande",telefone:"27988198419",oficinas:["Trança","Fotografia"]},
+            {id:32,nome:"Emilly",nascimento:"12/04/2010",bairro:"Jardim Botânico",telefone:"27997775264",oficinas:["Jiu-Jitsu"]},
+            {id:33,nome:"Heloisa",nascimento:"11/02/2011",bairro:"Jardim Botânico",telefone:"27999689042",oficinas:["Jiu-Jitsu"]},
+            {id:34,nome:"Kayllini",nascimento:"12/03/2009",bairro:"Padre Gabriel",telefone:"27995331733",oficinas:["Jiu-Jitsu","Vôlei"]},
+            {id:35,nome:"Isabelly",nascimento:"15/09/2010",bairro:"Padre Gabriel",telefone:"27996102163",oficinas:["Jiu-Jitsu"]},
+            {id:36,nome:"Suellen",nascimento:"23/07/2009",bairro:"Santa Paula",telefone:"27995250613",oficinas:["Fotografia","Clube das Meninas"]},
+            {id:37,nome:"Miguel",nascimento:"24/03/2011",bairro:"Jardim Campo Grande",telefone:"27999934984",oficinas:["Capoeira","Jiu-Jitsu","Vôlei","Futsal"]},
+            {id:38,nome:"Gabriel",nascimento:"10/07/2009",bairro:"Jardim Campo Grande",telefone:"27996150042",oficinas:["Futsal"]},
+            {id:39,nome:"Pietra",nascimento:"11/08/????",bairro:"Jardim Botânico",telefone:"27999066073",oficinas:["Dança"]},
+            {id:40,nome:"Ezequias",nascimento:"04/06/2008",bairro:"Castelo Branco",telefone:"27988551759",oficinas:["Barbearia"]},
+            {id:41,nome:"Kaiky",nascimento:"25/05/2008",bairro:"Bela Vista",telefone:"27998897446",oficinas:["Barbearia"]},
+            {id:42,nome:"João Paulo",nascimento:"08/06/2008",bairro:"Castelo Branco",telefone:"27995751875",oficinas:["Barbearia"]},
+            {id:43,nome:"Ana Clara",nascimento:"03/05/2008",bairro:"Castelo Branco",telefone:"27997129601",oficinas:["Queimada","Vôlei"]},
+            {id:44,nome:"Isabela",nascimento:"08/09/2008",bairro:"Castelo Branco",telefone:"27974002479",oficinas:["Trança","Fotografia"]}
+        ]
+
+        // ====================== FUNÇÕES AUXILIARES ======================
+        function calcularIdade(nasc) {
+            if (!nasc || nasc.includes('????')) return '—'
+            const partes = nasc.split('/')
+            if (partes.length < 3 || isNaN(parseInt(partes[2]))) return '—'
+            const ano = parseInt(partes[2])
+            let idade = 2026 - ano
+            // Ajuste aproximado de aniversário (usando abril como referência)
+            const mes = parseInt(partes[1])
+            if (mes > 4 || (mes === 4 && parseInt(partes[0]) > 1)) idade--
+            return idade + ' anos'
+        }
+
+        function formatarTelefone(tel) {
+            if (!tel) return ''
+            return tel.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+        }
+
+        function criarLinkWhats(nome, oficinas, telefone) {
+            if (!telefone) return ''
+            const telLimpo = telefone.replace(/\D/g, '')
+            const oficinasStr = oficinas.join(', ')
+            const mensagem = encodeURIComponent(`Olá ${nome}! Vimos que você demonstrou interesse nas oficinas de ${oficinasStr}. Em breve entraremos em contato com mais informações!`)
+            return `https://wa.me/55${telLimpo}?text=${mensagem}`
+        }
+
+        // ====================== RENDERIZAÇÃO DA TABELA ======================
+        function renderizarTabela(dadosFiltrados) {
+            const tbody = document.getElementById('tabela-corpo')
+            tbody.innerHTML = ''
+            
+            dadosFiltrados.forEach(jovem => {
+                const idade = calcularIdade(jovem.nascimento)
+                const telFormatado = formatarTelefone(jovem.telefone)
+                const oficinasStr = jovem.oficinas.join(', ')
+                
+                const tr = document.createElement('tr')
+                tr.className = 'table-row'
+                tr.innerHTML = `
+                    <td class="px-8 py-5 font-medium">${jovem.nome}</td>
+                    <td class="px-4 py-5 text-slate-600">${idade}</td>
+                    <td class="px-4 py-5 text-slate-600">${jovem.bairro}</td>
+                    <td class="px-4 py-5 font-mono text-slate-600">${telFormatado}</td>
+                    <td class="px-6 py-5">
+                        <div class="flex flex-wrap gap-1">
+                            ${jovem.oficinas.map(o => `<span class="text-[10px] px-3 py-px bg-blue-100 text-blue-700 rounded-3xl">${o}</span>`).join('')}
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 text-center">
+                        ${jovem.telefone ? 
+                            `<a href="${criarLinkWhats(jovem.nome, jovem.oficinas, jovem.telefone)}" target="_blank" 
+                                class="whatsapp-btn inline-flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-6 py-3 rounded-3xl shadow-lg">
+                                <i class="fa-brands fa-whatsapp mr-2 text-lg"></i>
+                                Enviar mensagem
+                            </a>` : 
+                            `<span class="text-xs text-slate-400">Sem telefone</span>`
+                        }
+                    </td>
+                `
+                tbody.appendChild(tr)
+            })
+            
+            if (dadosFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400">Nenhum jovem encontrado com os filtros aplicados.</td></tr>`
+            }
+        }
+
+        // ====================== FILTROS ======================
+        function filtrarTabela() {
+            const busca = document.getElementById('busca-nome').value.toLowerCase().trim()
+            const bairroSelecionado = document.getElementById('filtro-bairro').value
+            const oficinaSelecionada = document.getElementById('filtro-oficina').value
+            
+            const filtrados = jovens.filter(j => {
+                const matchNome = !busca || j.nome.toLowerCase().includes(busca)
+                const matchBairro = !bairroSelecionado || j.bairro === bairroSelecionado
+                const matchOficina = !oficinaSelecionada || j.oficinas.includes(oficinaSelecionada)
+                return matchNome && matchBairro && matchOficina
+            })
+            
+            renderizarTabela(filtrados)
+        }
+
+        function limparFiltros() {
+            document.getElementById('busca-nome').value = ''
+            document.getElementById('filtro-bairro').value = ''
+            document.getElementById('filtro-oficina').value = ''
+            renderizarTabela(jovens)
+        }
+
+        // ====================== PREENCHER SELECTS ======================
+        function preencherFiltros() {
+            const bairrosUnicos = [...new Set(jovens.map(j => j.bairro))].sort()
+            const selectBairro = document.getElementById('filtro-bairro')
+            bairrosUnicos.forEach(b => {
+                const opt = document.createElement('option')
+                opt.value = b
+                opt.textContent = b
+                selectBairro.appendChild(opt)
+            })
+            
+            const todasOficinas = [...new Set(jovens.flatMap(j => j.oficinas))].sort()
+            todasOficinas.push('Batalha de Rimas')
+            const selectOficina = document.getElementById('filtro-oficina')
+            todasOficinas.forEach(o => {
+                const opt = document.createElement('option')
+                opt.value = o
+                opt.textContent = o
+                selectOficina.appendChild(opt)
+            })
+        }
+
+        // ====================== GRÁFICOS ======================
+        let chartBairros = null
+        let chartOficinas = null
+
+        function criarGraficoBairros() {
+            const contagemBairros = {}
+            jovens.forEach(j => {
+                contagemBairros[j.bairro] = (contagemBairros[j.bairro] || 0) + 1
+            })
+            
+            const labels = Object.keys(contagemBairros).sort()
+            const data = labels.map(l => contagemBairros[l])
+            
+            if (chartBairros) chartBairros.destroy()
+            
+            chartBairros = new Chart(document.getElementById('graficoBairros'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jovens por bairro',
+                        data: data,
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#1e40af',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                        x: { grid: { color: '#e2e8f0' } }
+                    }
+                }
+            })
+        }
+
+        function criarGraficoOficinas() {
+            const contagemOficinas = {}
+            jovens.forEach(j => {
+                j.oficinas.forEach(o => {
+                    contagemOficinas[o] = (contagemOficinas[o] || 0) + 1
+                })
+            })
+            // Batalha de Rimas sempre 0
+            contagemOficinas['Batalha de Rimas'] = 0
+            
+            const labels = Object.keys(contagemOficinas).sort((a,b) => contagemOficinas[b] - contagemOficinas[a])
+            const data = labels.map(l => contagemOficinas[l])
+            
+            if (chartOficinas) chartOficinas.destroy()
+            
+            chartOficinas = new Chart(document.getElementById('graficoOficinas'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Inscrições',
+                        data: data,
+                        backgroundColor: (ctx) => ctx.raw === 0 ? '#e2e8f0' : '#3b82f6',
+                        borderColor: '#1e40af',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                        y: { grid: { color: '#e2e8f0' } }
+                    }
+                }
+            })
+        }
+
+        // ====================== ESTATÍSTICAS GERAIS ======================
+        function atualizarCards() {
+            // Total jovens
+            document.getElementById('total-jovens').textContent = jovens.length
+            document.getElementById('quick-total-number').textContent = jovens.length
+            
+            // Bairros únicos
+            const bairrosUnicos = new Set(jovens.map(j => j.bairro)).size
+            document.getElementById('total-bairros').textContent = bairrosUnicos
+            
+            // Oficinas únicas + Batalha de Rimas
+            const oficinasUnicas = new Set(jovens.flatMap(j => j.oficinas)).size + 1
+            document.getElementById('total-oficinas').textContent = oficinasUnicas
+            
+            // Total inscrições
+            const totalInscricoes = jovens.reduce((acc, j) => acc + j.oficinas.length, 0)
+            document.getElementById('total-inscricoes').textContent = totalInscricoes
+            
+            // Idade média
+            let somaIdades = 0
+            let countIdades = 0
+            jovens.forEach(j => {
+                const idade = calcularIdade(j.nascimento)
+                if (idade !== '—') {
+                    somaIdades += parseInt(idade)
+                    countIdades++
+                }
+            })
+            const media = countIdades > 0 ? (somaIdades / countIdades).toFixed(1) : '—'
+            document.getElementById('idade-media').innerHTML = `${media}<span class="text-2xl font-normal ml-2">anos</span>`
+            
+            // Top 3 oficinas
+            const contagem = {}
+            jovens.forEach(j => j.oficinas.forEach(o => contagem[o] = (contagem[o] || 0) + 1))
+            const top3 = Object.entries(contagem)
+                .sort((a,b) => b[1] - a[1])
+                .slice(0, 3)
+            
+            const topHTML = top3.map(([nome, qtd]) => `
+                <li class="flex justify-between items-center">
+                    <span class="font-medium">${nome}</span> 
+                    <span class="bg-blue-100 text-blue-700 px-3 rounded-3xl text-xs py-px">${qtd} jovens</span>
+                </li>
+            `).join('')
+            document.getElementById('top-oficinas').innerHTML = topHTML
+            
+            // Bairro dominante
+            const contBairro = {}
+            jovens.forEach(j => contBairro[j.bairro] = (contBairro[j.bairro] || 0) + 1)
+            const dominante = Object.entries(contBairro).sort((a,b) => b[1] - a[1])[0]
+            document.getElementById('bairro-dominante').textContent = dominante[0]
+        }
+
+        // ====================== ORDENAÇÃO DA TABELA ======================
+        let ordemAtual = { col: 0, asc: true }
+        
+        function ordenarTabela(coluna) {
+            if (ordemAtual.col === coluna) {
+                ordemAtual.asc = !ordemAtual.asc
+            } else {
+                ordemAtual = { col: coluna, asc: true }
+            }
+            
+            const dados = [...jovens]
+            
+            dados.sort((a, b) => {
+                let valA, valB
+                
+                if (coluna === 0) { // nome
+                    valA = a.nome.toLowerCase()
+                    valB = b.nome.toLowerCase()
+                } else if (coluna === 1) { // idade
+                    valA = parseInt(calcularIdade(a.nascimento)) || 0
+                    valB = parseInt(calcularIdade(b.nascimento)) || 0
+                } else if (coluna === 2) { // bairro
+                    valA = a.bairro
+                    valB = b.bairro
+                }
+                
+                if (valA < valB) return ordemAtual.asc ? -1 : 1
+                if (valA > valB) return ordemAtual.asc ? 1 : -1
+                return 0
+            })
+            
+            renderizarTabela(dados)
+        }
+
+        // ====================== EXPORTAR CSV ======================
+        function exportarCSV() {
+            let csv = "Nome,Idade,Bairro,Telefone,Oficinas\n"
+            
+            jovens.forEach(j => {
+                const idade = calcularIdade(j.nascimento)
+                const tel = j.telefone || '—'
+                const oficinas = j.oficinas.join(' | ')
+                csv += `"${j.nome}",${idade},"${j.bairro}","${tel}","${oficinas}"\n`
+            })
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+            const link = document.createElement('a')
+            link.href = URL.createObjectURL(blob)
+            link.download = 'lista_jovens_oficinas.csv'
+            link.click()
+        }
+
+        // ====================== MODAL DESTAQUE ======================
+        function mostrarDestaque() {
+            const contagem = {}
+            jovens.forEach(j => {
+                j.oficinas.forEach(o => {
+                    contagem[o] = (contagem[o] || 0) + 1
+                })
+            })
+            
+            const html = Object.entries(contagem)
+                .sort((a,b) => b[1] - a[1])
+                .map(([nome, qtd]) => `
+                    <div class="flex justify-between py-3 border-b last:border-0">
+                        <span class="font-semibold">${nome}</span>
+                        <span class="font-mono bg-blue-600 text-white px-4 rounded-3xl text-sm flex items-center">${qtd}</span>
+                    </div>
+                `).join('')
+            
+            const modal = document.createElement('div')
+            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 modal'
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">🏆 Oficinas Mais Procuradas</h3>
+                        <i onclick="this.closest('.modal').remove()" class="fa-solid fa-xmark text-3xl cursor-pointer text-slate-400 hover:text-slate-600"></i>
+                    </div>
+                    <div class="max-h-96 overflow-auto">${html}</div>
+                    <div class="text-xs text-slate-400 mt-8 text-center">Batalha de Rimas = 0 inscrições</div>
+                    <button onclick="this.closest('.modal').remove()" 
+                            class="mt-6 w-full py-4 bg-slate-900 text-white rounded-3xl font-semibold">Fechar</button>
+                </div>
+            `
+            document.body.appendChild(modal)
+        }
+
+        // ====================== TOGGLE DARK MODE (opcional) ======================
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark')
+                document.getElementById('dark-icon').classList.replace('fa-sun', 'fa-moon')
+            } else {
+                document.documentElement.classList.add('dark')
+                document.getElementById('dark-icon').classList.replace('fa-moon', 'fa-sun')
+            }
+        }
+
+        // ====================== INICIALIZAÇÃO ======================
+        function inicializarDashboard() {
+            // Preenche filtros
+            preencherFiltros()
+            
+            // Atualiza cards e perfil
+            atualizarCards()
+            
+            // Renderiza tabela inicial
+            renderizarTabela(jovens)
+            
+            // Cria gráficos
+            criarGraficoBairros()
+            criarGraficoOficinas()
+            
+            console.log('%c✅ Dashboard de Oficinas carregado com sucesso! (44 jovens)', 'color:#3b82f6; font-weight:700')
+            
+            // Animação suave nos cards
+            setTimeout(() => {
+                document.querySelectorAll('.card').forEach((c, i) => {
+                    c.style.opacity = '0'
+                    c.style.transform = 'translateY(20px)'
+                    setTimeout(() => {
+                        c.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                        c.style.opacity = '1'
+                        c.style.transform = 'translateY(0)'
+                    }, i * 80)
+                })
+            }, 800)
+        }
+        
+        // Carrega tudo ao abrir a página
+        window.onload = inicializarDashboard
+    </script>
+</body>
+</html>
